@@ -104,7 +104,9 @@ class Toolbar extends React.Component {
     console.log(this.state.saveExchangeContext)
     return (
       <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
+
       <View style={styles.container}>
+    
         <View style={styles.centerizedView}>
        <View style={styles.authBox}>
         <View style={styles.inputBox}>
@@ -161,7 +163,7 @@ class Toolbar extends React.Component {
           
 
                 <Button
-                style={{backgroundColor: "green",width:"100%" ,flex:1}}
+                color="green"
         disabled={(() => { return (this.checkAmount(this.state.amountFrom)) ? false : "disabled" })()} 
         title="Save"
         onPress={this.saveExchange}
@@ -194,6 +196,7 @@ const styles = StyleSheet.create({
     width: '100%',
     top: '5%',
   },
+ 
   authBox: {
     width: '80%',
    // backgroundColor: '#fafafa',
