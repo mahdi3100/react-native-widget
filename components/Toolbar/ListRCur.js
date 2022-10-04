@@ -37,7 +37,7 @@ function ListCrypto({defaultCurTo , changeCurTo}){
      
     //  document.querySelector(".dropdown-item").addEventListener("mousedown",function(){alert("test")})
     styleItemSelected.current= {"icon":IconToolBar[curTo]["icon"]}
-    changeCurTo(curTo)
+    changeCurTo(curTo, IconToolBar[curTo]["logo"])
   },[curTo]);
 
     return(

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { createRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -10,6 +10,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Button,
+  ActivityIndicator   ,
+  Alert
 
 } from 'react-native';
 //import { ExchangeContext } from "../Context/ExchangeContext.js";
@@ -24,11 +26,12 @@ class Toolbar extends React.Component {
     this.defaultCurrencyFrom = "BTC";//BTC|XRP|ETH
     this.defaultCurrencyTo = "USD";//USD|GBP|EUR
     this.state = {
-      amountFrom: 1,
-      amountTo: 0,
+      amountFrom: "0",//must be string for TextInput
+      amountTo: "0",//must be string for TextInput
       fetchLoader: false,//show or hide fetch loader
       fetchError: "",//show or hide error element
       saveExchangeContext: "NO",//For DEV "NO"; PROD=> {} ; chenge this value in where useContext() has been used 
+      logoTo:"USD"
     };
     
     this.changeCurFrom = this.changeCurFrom.bind(this);
@@ -36,7 +39,9 @@ class Toolbar extends React.Component {
     this.saveExchange = this.saveExchange.bind(this);
     this.checkAmount = this.checkAmount.bind(this);
     this.curFrom = this.defaultCurrencyFrom;
-    this.curTo = this.defaultCurrencyTo
+    this.curTo = this.defaultCurrencyTo;
+
+    this.CurToRef = createRef(this.defaultCurrencyTo);
   }
   componentDidMount() {
     //check component mounted times for Debug purpose
@@ -46,13 +51,16 @@ class Toolbar extends React.Component {
   //Method to handle curency change in DropDown select
   changeCurFrom(curFrom) {
     this.curFrom = curFrom;
+   
   }
   //Method to handle curency change in DropDown select
-  changeCurTo(curTo) {
+  changeCurTo(curTo,logoTo) {
     this.curTo = curTo;
+    this.setState((mystate)=>mystate.logoTo=logoTo);
   }
   //Method to check ammount in input "Amount From"
   checkAmount(Amount) {
+   // Alert.alert("aoutoo",`==>${Amount}`);
     return (!isNaN(Amount) && Amount > 0) ? true : false;
   }
   //Event to catch SAVE trigger button 
@@ -64,11 +72,13 @@ class Toolbar extends React.Component {
     let getCurrencyTo = this.curTo;
     this.setState({ fetchLoader: true });
     this.setState({ fetchError: "" });
-    let baseURL = process.env.REACT_APP_API_BASE_URL || 'localhost:8787';
+    let baseURL = process.env.REACT_APP_API_BASE_URL || '192.168.182.173:8787' || 'localhost:8787';
     //baseURL = baseURL.replace("http//","")
+   
     fetch("http://"+baseURL + "/convert?from=" + getCurrencyFrom + "&to=" + getCurrencyTo + "&amount=" + getAmountFrom)
       .then(res => res.json())
       .then(res => {
+       
         this.setState({ fetchLoader: false });
         if (res["err"]) {
      
@@ -82,7 +92,8 @@ class Toolbar extends React.Component {
           this.setState({ amountTo: 0 });
           return
         }
-        this.setState({ amountTo: res["amountTo"] });
+       
+        this.setState({ amountTo: res["amountTo"].toString() });
         //pass response to Context to update History in LiveElements component            
         this.setState({
           saveExchangeContext: {
@@ -95,6 +106,9 @@ class Toolbar extends React.Component {
             "type": "Exchange",
           }
         });
+      }).catch((error) => {
+      //  Alert.alert("error",JSON.stringify(error));
+      console.log(JSON.stringify(error))
       });
   }
   //<ListCrypto defaultCurFrom={this.defaultCurrencyFrom} changeCurFrom={(currencyFrom)=>this.changeCurFrom(currencyFrom)}/>
@@ -122,15 +136,14 @@ class Toolbar extends React.Component {
            
 
                 <TextInput
-                style={[styles.input, 
-                {borderColor:(() => { return (this.checkAmount(this.state.amountFrom)) ? "green" : "red" })()}
-                ]}
+                style={[styles.input]}
                   selectionColor={"black"}
                 autoCapitalize={false}
                 keyboardType='decimal-pad'
                 textContentType='none'
                 onChangeText={(value) => this.setState({ amountFrom: value })}
                 value={this.state.amountFrom}
+                placeholder="Amount"
               />
 
        </View>
@@ -141,33 +154,46 @@ class Toolbar extends React.Component {
           
   
 
-           <ListRCur defaultCurTo={this.defaultCurrencyTo} changeCurTo={(currencyTo)=>this.changeCurTo(currencyTo)}/>
+           <ListRCur defaultCurTo={this.defaultCurrencyTo} changeCurTo={(currencyTo,logoTo)=>this.changeCurTo(currencyTo,logoTo)}/>
       
        </View>
 
        <View style={styles.inputBox}>
            <Text style={styles.inputLabel}>Amount</Text> 
-           {(this.state.fetchLoader)?<ActivityIndicator />:null}
-           <TextInput
-                style={styles.input}
+   
+          <View  style={{display:"flex",flexDirection:"row"}}>
+          <TextInput
+                style={[styles.input,{flex:3}]}
                 editable={false}
                 selectTextOnFocus={false}
                 value={this.state.amountTo}
               />    
-               <Text style={[styles.inputLabel,{borderColor:"red"}]} >
+          {(this.state.fetchLoader)?<ActivityIndicator  style={{flex:1}} size="small" color="#eee" />:<Text  style={{flex:1,fontSize:17,marginLeft:5,fontWeight:"bold",textAlignVertical:"center"}} size="small" >{this.state.logoTo}</Text>}
+          </View>
+     
+
+               <Text style={[styles.inputLabel,{color:"red",fontSize:15,fontWeight:"bold"}]} >
                {this.state.fetchError}
                </Text>
-            
+              
        </View>
             
           
+<TouchableOpacity
 
-                <Button
-                color="green"
-        disabled={(() => { return (this.checkAmount(this.state.amountFrom)) ? false : "disabled" })()} 
-        title="Save"
-        onPress={this.saveExchange}
-      />
+      onPress={this.saveExchange}
+      style={[styles.appButtonContainer ,
+        (() => { return (this.checkAmount(this.state.amountFrom)) ? null : styles.appButtonDisabled})()
+      ]}
+ 
+     disabled={(() => { return (this.checkAmount(this.state.amountFrom)) ? false : true})()} 
+    >
+      <Text style={[styles.appButtonText,
+      (() => { return (this.checkAmount(this.state.amountFrom)) ? null : styles.appButtonDisabled})()
+    ]}>Save</Text>
+ 
+</TouchableOpacity>
+
 
             
 </View>
@@ -177,6 +203,15 @@ class Toolbar extends React.Component {
       </TouchableWithoutFeedback>
     );
   }
+  /**
+   *                 <Button
+                color="green"
+        disabled={(() => { return (this.checkAmount(this.state.amountFrom)) ? false : "disabled" })()} 
+        title="Save"
+        onPress={this.saveExchange}
+      />
+      
+  */
   /*
   <ExchangeContext.Consumer>
   {({ /*elementExchange,*/ /*setExchnage }) => (
@@ -230,5 +265,37 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
  
   },
+  appButtonContainer: {
+ width: '100%',
+ display: 'flex',
+ flexDirection: 'row',
+    justifyContent: 'center',
+    alignContent: 'center',
+    paddingVertical:14,
+    borderRadius: 4,
+    elevation:2,
+    shadowColor:"#000",
+    shadowOffset: {
+      width: 2,
+      height: 2,
+    },
+    shadowOpacity:0.25,
+    shadowRadius:3.5,
+  backgroundColor:"#7b6",
+  
+  },
+  appButtonDisabled:{
+    backgroundColor:"#fff",
+    color:"gray"
+  },
+  appButtonText: {
+    fontSize: 18,
+    color:"white",
+    fontWeight: "bold",
+    alignSelf: "center",
+    //textTransform: "uppercase",
+    
+  },
+ 
 })
 export { Toolbar as default };
