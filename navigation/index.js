@@ -7,6 +7,7 @@ import { FontAwesome } from '@expo/vector-icons';
 
 import Exchange from '../components/Toolbar/Toolbar.js';
 import History from '../components/History/index.js';
+import Search from '../components/History/FilterDate.js';
 //import SearchTable from './components/FilterDate/index.js';
 
 const Stack = createNativeStackNavigator();
@@ -51,10 +52,23 @@ return(
     <Tab.Navigator
     >
         <Tab.Screen name="History" component={History}
-     options={{ headerShown: false }}  //remove the header of tab its suck under header of stacknavigator
+      
+     options={{ headerShown: false, 
+      tabBarIcon:({ focused, color, size })=>(<FontAwesome 
+      name="table"
+      size={25}
+      //color={Colors[colorScheme].text}
+      />)
+    }}  //remove the header of tab its suck under header of stacknavigator
     />
-        <Tab.Screen name="Search" component={()=>(<Text>SEARCH component</Text>)}
-        options={{ headerShown: false }}  //remove the header of tab its suck under header of stacknavigator
+        <Tab.Screen name="Search" component={Search}
+        options={{ headerShown: false ,
+          tabBarIcon:({ focused, color, size })=>(<FontAwesome 
+            name="search"
+            size={25}
+            //color={Colors[colorScheme].text}
+            />)
+          }}  //remove the header of tab its suck under header of stacknavigator
          />
     </Tab.Navigator>
 )
